@@ -1,0 +1,47 @@
+group:
+- name: php-fpm
+  rule:
+  - alert: php-fpm_is_running
+    expr: phpfpm_up == 0
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Critical: PHP-FPM is down on the host {{$label.instance}}."
+      description: "PHP-FPM has been down for more than 30 seconds"
+
+  - alert: php-fpm_high_number_accepted_connections
+    expr: rate(phpfpm_accecpted_connections_total[5m]) > 30
+    for: 3m
+    label:
+      severity: critical
+    annotations:
+      description: "Critical: PHP-FPM high number accepted connections(30con/s) on the host {{$label.instance}} for more than 3 minutes"
+      summary: "PHP-FPM number active connections is {{$value}}"
+  
+  - alert: php-fpm_high_running_process
+    expr: avg((sum(phpfpm_active_processes{app="$app",hip_new="$branch"})*100) / sum(phpfpm_total_processes{app="$app",hip_new="$branch"})) > 80
+    for: 3m
+    label:
+      severity: warning
+    annotations:
+      description: "Warning: PHP-FPM is running too many process"
+      summary: "PHP-FPM is having high running process"
+
+  - alert: php-fpm_high_queued_requests
+    expr: sum(phpfpm_listen_queue{app="$app",hip_new="$branch"}) > 30
+    for: 3m
+    label:
+      severity: critical
+    annotations:
+      description: "Critical: PHP-FPM have many request in queued"
+      summary: "PHP-FPM have many request in queued"
+
+  - alert: php-fpm_scrape_failures
+    expr: phpfpm_scrape_failures > 0
+    for: 3m
+    label:
+      severity: critical
+    annotations:
+      description: "Critical: PHP-FPM exporter scrape fail on host {{$label.instance}}"
+      summary: "PHP-FPM exporter scrape fail" 
